@@ -8,8 +8,8 @@ import os
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 # 配置信息
-secret_id = 'AKIDoTvBE5i6HE5h4BPew6NVUJxPgmiT3Ws8'        # 替换为你的SecretId
-secret_key = 'KVTK1Ws55uY6nNrQNGyjcNzPcvCONPTL'      # 替换为你的SecretKey
+secret_id = ''        # 替换为你的SecretId
+secret_key = ''      # 替换为你的SecretKey
 region = 'ap-guangzhou'             # 替换为你Bucket所在的地域
 bucket = 'zhipuai-on-wechat-1319111495' # 替换为你的存储桶名称
 
