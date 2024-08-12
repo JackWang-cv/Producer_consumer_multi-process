@@ -3,14 +3,16 @@ import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from typing import Counter
 from zhipu_ai_vision import send
+from zhipu_ai_glm4 import glm4
 from tencent_cos import upload_image_to_cos
 import logging
 logger = logging.getLogger(__name__)
 
 class Photo:
-    def __init__(self, session_id, url):
+    def __init__(self, session_id, url, prompt):
         self.session_id = session_id
         self.url = url
+        self.prompt = prompt
 
 # ThreadPoolExecutor：控制应用级别的全局线程数，管理所有任务的并发。
 # BoundedSemaphore：控制特定会话中线程的并发访问，防止会话中的过多并发线程。
@@ -22,7 +24,7 @@ class ProducerConsumer:
         self.handler_pool = ThreadPoolExecutor(max_workers=20)
         self.futures = {}
         self.running = True  # 控制循环的标志变量
-        self.reply_counter = Counter()  # 线程安全的计数器
+        self.reply_message = ''
         self.reply_counter_lock = threading.Lock()  # 锁保护计数器
 
     def conf(self):
@@ -53,12 +55,20 @@ class ProducerConsumer:
     def _handle(self, photo):
         try:
             # 处理逻辑
-            url = upload_image_to_cos(photo.url)
-            prompt = "You are a robot that checks if there is junk in the image. If there is junk in the image, please give only the English name of the junk,don't answer others; if not, please return None."
-            reply = send(prompt, url)
-            with self.reply_counter_lock:
-                self.reply_counter[reply.content] += 1
-            logger.info(f'{reply.content = }, {photo.url = }')
+            url = photo.url
+            if not isinstance(photo.prompt, list):
+                reply = send(photo.prompt, url)
+                if 'No' not in reply.content:
+                    with self.reply_counter_lock:
+                        self.reply_message += reply.content + ' '
+            else:
+                reply = send(photo.prompt[0], url)
+                reply = glm4(reply.content + photo.prompt[1])
+                if '无' not in reply.content:
+                    with self.reply_counter_lock:
+                        self.reply_message += 'Abnormal_behavior'
+                        
+            # logger.info(f'{reply.content = }, {photo.url = }')
 
         except Exception as e:
             print(f"Error handling photo: {photo.url}, error: {e}")
@@ -93,10 +103,6 @@ class ProducerConsumer:
     def stop(self):
         self.running = False
         self.handler_pool.shutdown(wait=True)
-
-    def get_reply_counts(self):
-        with self.reply_counter_lock:
-            return dict(self.reply_counter)
 
 if __name__ == "__main__":
     pass

@@ -31,6 +31,6 @@ def send(text, url):
 
 if __name__ == "__main__":
 
-    # print(send("http://res.cloudinary.com/dsqtyrogq/image/upload/v1721462376/syaz32j6lxq4myplpumq.jpg").content)
+    # print(send("检查图片是否有可能发生火灾。如果存在火灾的风险，请返回“有”；如果没有火灾风险，请返回“无”。","https://zhipuai-on-wechat-1319111495.cos.ap-guangzhou.myqcloud.com/19.png").content)
     pass
-    # print(send(""))
+    

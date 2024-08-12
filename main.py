@@ -3,4 +3,4 @@
 
 from work import head
 
-head('image')
+head('image1')
